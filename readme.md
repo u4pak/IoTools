@@ -5,7 +5,8 @@ C# Open-source class library for turning deserialized IO Store asset data into S
 ## Usage
 
 #### Serialization
-Serialization is super simple here's a showcase of the only code you need.
+
+Serialization is super simple below is a preview on how to serialize an asset
 
 ```csharp
   IoPackage Package = (IoPackage)Output.FProvider.LoadPackage("/Game/Athena/Heroes/Meshes/Bodies/CP_028_Athena_Body");
