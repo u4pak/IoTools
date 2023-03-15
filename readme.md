@@ -2,6 +2,17 @@
 
 C# Open-source class library for turning deserialized IO Store asset data into Serialized Io Store asset data that can be used for modding.
 
+## Setup
+
+#### Provider Linking
+
+We utilize CUE4Parse so that we can export the IoPackage from the game you're attempting to mod, Since we don't want to create a provider just for IOTools you have to link your provider with IOTools, This is a simple process, Example Below.
+
+```csharp
+var Output = new Output(@"C:\Users\anker\OneDrive\Desktop\Fortnite\FortniteGame\Content\Paks", @"C:\Users\anker\OneDrive\Desktop\Mappings\++Fortnite+Release-23.50-CL-24376996-Windows.usmap"); // create our provider
+Provider.provider = Output.FProvider; // set the provider IOTools uses to our new provider that our modding program uses.
+```
+
 ## Usage
 
 #### Serialization
