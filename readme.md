@@ -23,10 +23,10 @@ Serialization is super simple below is a preview on how to serialize an asset
   List<string> NameMap = new();
   NameMap.Add("/Game/");
 
-  File.WriteAllBytes({path to write at}, Serializer.SerializeAsset({asset path}, new AssetData()
+  File.WriteAllBytes({file path to write bytes in}, Serializer.SerializeAsset({asset path}, new AssetData()
   {
-    NameMap = NameMap, // new name map of the asset
-  }, {Your original assets bytes here});
+    NameMap = NameMap // names you're adding to the name map
+  }));
 ```
 
 
@@ -37,3 +37,4 @@ You're always welcome to make a pull request for any contribution you feel will 
 ## Creators
 
 - [Anker#0853](https://github.com/OngAnker)
+- [owens#5889](https://github.com/owen-developer)
