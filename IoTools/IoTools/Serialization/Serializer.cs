@@ -9,7 +9,8 @@ public class Serializer
     private static FNameMapData SerializeFNameMap(List<FNameEntrySerialized> FNameEntrysSerialized, int LastIndex, byte[] originalAssetBytes) // this is only ever going to be used by this so lets just make this private. :shrug:
     {
         FNameMapData FNameMapData = new(); // probably a trash way of doing this but it's most likely gonna be changed in the future.
-        
+        FNameMapData.lengths = new();
+        FNameMapData.hashes = new();
         uint bytesTheNameMapTakesUp = 0;
         foreach (var Name in FNameEntrysSerialized)
             bytesTheNameMapTakesUp += (uint)Name.name.Length;
@@ -19,8 +20,8 @@ public class Serializer
 
         for (int i = 0; i < FNameEntrysSerialized.Count; i++)
         {
-            int HashStart = 44;
-            HashStart += originalAssetBytes[44] * 8;
+            //int HashStart = 44;
+            //HashStart += originalAssetBytes[44] * 8;
             /*if (i == LastIndex)
             {
                 
@@ -46,15 +47,17 @@ public class Serializer
     {
         StructWriter SW = new();
         assetData.NameMapData = SerializeFNameMap(assetData.NameMap, assetData.NameMap.Count, new byte[0]);
-
-        SW.WriteStruct(assetData); // write our final struct to return
-
+        
+        SW.WriteStruct(assetData);
+        
         FZenPackageSummary ogSummary = Reader.ReadStruct<FZenPackageSummary>(originalAssetBytes, 0);
         byte[] properties = new byte[originalAssetBytes.Length - ogSummary.HeaderSize];
         Buffer.BlockCopy(originalAssetBytes, (int)ogSummary.HeaderSize, properties, 0, properties.Length);
         SW.Write(properties); // couldn't be asked serializing properties atm.
 
         assetData.Summary = ogSummary; // not done with serialization so we're not doing to much like recreating the summary yet, atleast not until all header data is being written.
+        
+        
         
         return SW.WrittenBytes.ToArray();
     }
