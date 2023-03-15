@@ -73,6 +73,11 @@ public class Serializer
         foreach (var name in assetData.NameMap)
             SW.Write(Encoding.ASCII.GetBytes(name.name));
         
+        SW.Write(new byte[] { 0x0 }); // hashes here are not needed so we don't have to write them.
+
+        foreach (var exportMap in assetData.ExportMaps)
+            SW.WriteStruct(exportMap);
+        
         SW.Write(properties); // couldn't be asked serializing properties atm.
         
         return SW.WrittenBytes.ToArray();

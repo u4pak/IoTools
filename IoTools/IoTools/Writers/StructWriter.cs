@@ -26,4 +26,9 @@ public class StructWriter : BinaryWriter
     {
         WrittenBytes.AddRange(buffer);
     }
+    
+    public unsafe void Insert(byte[] buffer, int offset)
+    {
+        WrittenBytes.InsertRange(offset,buffer);
+    }
 }

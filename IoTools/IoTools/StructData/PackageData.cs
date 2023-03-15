@@ -1,4 +1,5 @@
-﻿using CUE4Parse.UE4.IO.Objects;
+﻿using CUE4Parse.UE4.Assets.Exports;
+using CUE4Parse.UE4.IO.Objects;
 using CUE4Parse.UE4.Objects.UObject;
 
 namespace IoTools.StructData;
@@ -38,4 +39,18 @@ public struct FNameBlankData
     public uint count;
     public uint bytesToTakeUp;
     public ulong hash;
+}
+
+public struct FExportMapEntry
+{
+    public ulong CookedSerialOffset;
+    public ulong CookedSerialSize;
+    public FMappedName ObjectName;
+    public FPackageObjectIndex OuterIndex;
+    public FPackageObjectIndex ClassIndex;
+    public FPackageObjectIndex SuperIndex;
+    public FPackageObjectIndex TemplateIndex;
+    public ulong PublicExportHash;
+    public EObjectFlags ObjectFlags;
+    public byte FilterFlags; // EExportFilterFlags: client/server flags
 }
