@@ -5,7 +5,7 @@ using IoTools.Tests;
 
 // create a provider
 
-var Output = new Output(@"C:\Users\anker\OneDrive\Desktop\Fortnite\FortniteGame\Content\Paks", @"C:\Users\anker\OneDrive\Desktop\Mappings\++Fortnite+Release-23.50-CL-24376996-Windows.usmap");
+var Output = new Output(@"C:\Users\anker\OneDrive\Desktop\Fortnite\FortniteGame\Content\Paks", @"C:\Users\anker\OneDrive\Desktop\Mappings\++Fortnite+Release-24.00-CL-24518431-Android_oo.usmap");
 Provider.provider = Output.FProvider;
 
 List<string> NameMap = new();

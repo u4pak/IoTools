@@ -10,14 +10,14 @@ namespace IoTools.Serialization;
 
 public class Serializer
 {
-    private static FNameMapData SerializeFNameMap(List<string> FNameEntrysSerialized, int LastIndex, byte[] originalAssetBytes) // this is only ever going to be used by this so lets just make this private. :shrug:
+    private static FNameMapData SerializeFNameMap(List<FNameEntrySerialized> FNameEntrysSerialized, int LastIndex, byte[] originalAssetBytes) // this is only ever going to be used by this so lets just make this private. :shrug:
     {
         FNameMapData FNameMapData = new(); // probably a trash way of doing this but it's most likely gonna be changed in the future.
         FNameMapData.lengths = new();
         FNameMapData.hashes = new();
         uint bytesTheNameMapTakesUp = 0;
         foreach (var Name in FNameEntrysSerialized)
-            bytesTheNameMapTakesUp += (uint)Name.Length;
+            bytesTheNameMapTakesUp += (uint)Name.Name.Length;
         FNameMapData.bytesToTakeUp = bytesTheNameMapTakesUp;
 
         FNameMapData.hash = 3244556288; // Ig it's kinda just a hash idrk though just guessing.
@@ -38,9 +38,9 @@ public class Serializer
             {
                 
             }*/
-            FNameMapData.hashes.Add(To32BitFnv1aHash(FNameEntrysSerialized[i].ToLower()));
+            FNameMapData.hashes.Add(To32BitFnv1aHash(FNameEntrysSerialized[i].Name.ToLower()));
             FNameMapData.hashes.Add(0);
-            FNameMapData.lengths.Add(new byte[] { 0x0, Convert.ToByte(FNameEntrysSerialized[i].Length)});
+            FNameMapData.lengths.Add(new byte[] { 0x0, Convert.ToByte(FNameEntrysSerialized[i].Name.Length)});
         }
         FNameMapData.count = (uint)FNameEntrysSerialized.Count;
         
@@ -83,8 +83,6 @@ public class Serializer
             package = (IoPackage)Provider.provider.LoadPackage(assetPath);
         }).Wait();
 
-        assetData.NameMapData = SerializeFNameMap(assetData.NameMap, assetData.NameMap.Count, new byte[0]);
-        
         List<FNameEntrySerialized> Names = package.NameMap.ToList().ConvertAll(x => new FNameEntrySerialized()
         {
             Name = x.Name
@@ -109,7 +107,9 @@ public class Serializer
         Buffer.BlockCopy(ogBytes, (int)ogSummary.HeaderSize, properties, 0, properties.Length);*/
 
         assetData.Summary = ogSummary; // not done with serialization so we're not doing to much like recreating the summary yet, atleast not until all header data is being written.
-    
+        
+        assetData.NameMapData = SerializeFNameMap(Names, assetData.NameMap.Count, new byte[0]);
+        
         //SW.WriteStruct(ogSummary);
         FNameBlankData FNameBlankData = new FNameBlankData()
         {
@@ -141,11 +141,21 @@ public class Serializer
                 CookedSerialOffset += (ulong)ExportMapOffset - (ulong)ogSummary.ExportMapOffset;
             else
                 CookedSerialOffset -= (ulong)ogSummary.ExportMapOffset - (ulong)ExportMapOffset;
+
+            byte[] PropertySize = new PropertySerializer(package.ExportsLazy[i].Value.ExportType, provider.MappingsForGame,
+                package.ExportsLazy[i].Value.Properties).Serialize(Names);
+            
+            ulong CookedSerialSize = package.ExportMap[i].CookedSerialSize;
+            if (package.ExportMap[i].CookedSerialSize > (ulong)PropertySize.Length)
+                CookedSerialSize -= package.ExportMap[i].CookedSerialSize - (ulong)PropertySize.Length;
+            else
+                CookedSerialSize += (ulong)PropertySize.Length - package.ExportMap[i].CookedSerialSize;
+                
             
             FExportMapEntry Entry = new FExportMapEntry()
             {
                 CookedSerialOffset = CookedSerialOffset,
-                CookedSerialSize = package.ExportMap[i].CookedSerialSize,
+                CookedSerialSize = CookedSerialSize,
                 ObjectName = package.ExportMap[i].ObjectName,
                 OuterIndex = package.ExportMap[i].OuterIndex,
                 ClassIndex = package.ExportMap[i].ClassIndex,
