@@ -3,7 +3,8 @@
 C# Open-source class library for turning deserialized IO Store asset data into Serialized Io Store asset data.
 
 #### Serialization
-<Serialization>
+<details>
+<summary>Serialization</summary>
   It's super simple to serialize your an asset Example:
 ```csharp
   File.WriteAllBytes(@"C:\Users\anker\OneDrive\Documents\IoTools\test.txt", Serializer.SerializeAsset(new AssetData()
@@ -12,4 +13,4 @@ C# Open-source class library for turning deserialized IO Store asset data into S
     ExportMaps = ExportMaps
   }, File.ReadAllBytes(@"C:\Users\anker\OneDrive\Desktop\Output\Exports\CP_028_Athena_Body.uasset")));
  ```
-</Serialization>
+</details>
