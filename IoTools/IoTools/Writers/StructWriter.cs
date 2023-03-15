@@ -47,4 +47,11 @@ public class StructWriter : BinaryWriter
     {
         WrittenBytes.InsertRange(offset,buffer);
     }
+    
+    public static byte[] Read(byte[] buffer, int offset, int count)
+    {
+        byte[] Result = new byte[count];
+        Buffer.BlockCopy(buffer, offset, Result, 0, count);
+        return Result.ToArray();
+    }
 }

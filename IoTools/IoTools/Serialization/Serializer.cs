@@ -46,6 +46,33 @@ public class Serializer
         
         return FNameMapData;
     }
+
+    private static List<ulong> getHashes(string assetPath, List<FNameEntrySerialized> names)
+    {
+        IoPackage package = null;
+        Task.Run(async () =>
+        {
+            package = (IoPackage)Provider.provider.LoadPackage(assetPath);
+        }).Wait();
+        List<ulong> hashes = new();
+        byte[] ogBytes = SaveAssetBytes(assetPath);
+        FZenPackageSummary ogSummary = Reader.ReadStruct<FZenPackageSummary>(ogBytes, 0);
+
+        int hashStart = ogBytes[44] * 8 + 44;
+
+        for (int i = 0; i < names.Count; i++)
+        {
+            if (i == ogSummary.Name.NameIndex)
+                hashes.Add(BitConverter.ToUInt64(StructWriter.Read(ogBytes, hashStart + 8, 8)));
+            else if (i == ogSummary.Name.NameIndex - 1)
+                hashes.Add(BitConverter.ToUInt64(StructWriter.Read(ogBytes, hashStart, 8)));
+            else
+                hashes.Add(To32BitFnv1aHash(names[i].Name.ToLower())); // hash ig
+        }
+        
+
+        return hashes;
+    }
     
     public static byte[] SerializeAsset(string assetPath, AssetData assetData)
     {
@@ -73,8 +100,13 @@ public class Serializer
 
         byte[] ogBytes = SaveAssetBytes(assetPath);
         FZenPackageSummary ogSummary = Reader.ReadStruct<FZenPackageSummary>(ogBytes, 0);
-        byte[] properties = new byte[ogBytes.Length - ogSummary.HeaderSize];
-        Buffer.BlockCopy(ogBytes, (int)ogSummary.HeaderSize, properties, 0, properties.Length);
+        byte[] ExportBundleEntries = new byte[ogSummary.GraphDataOffset - ogSummary.ExportBundleEntriesOffset];
+        byte[] GraphData = new byte[ogSummary.HeaderSize - ogSummary.GraphDataOffset];
+        Buffer.BlockCopy(ogBytes, ogSummary.ExportBundleEntriesOffset, ExportBundleEntries, 0, ExportBundleEntries.Length); // this is temporary.
+        Buffer.BlockCopy(ogBytes, ogSummary.GraphDataOffset, GraphData, 0, GraphData.Length); // this is temporary.
+        
+        /*byte[] properties = new byte[ogBytes.Length - ogSummary.HeaderSize];
+        Buffer.BlockCopy(ogBytes, (int)ogSummary.HeaderSize, properties, 0, properties.Length);*/
 
         assetData.Summary = ogSummary; // not done with serialization so we're not doing to much like recreating the summary yet, atleast not until all header data is being written.
     
@@ -87,9 +119,11 @@ public class Serializer
         };
         SW.WriteStruct(FNameBlankData);
 
-        SW.WriteList(assetData.NameMapData.hashes);
-        foreach(var length in assetData.NameMapData.lengths)
-            SW.Write(length);
+        SW.WriteList(getHashes(assetPath, Names));
+        
+        foreach(var name in Names)
+            SW.Write(new byte[] { 0x0, Convert.ToByte(name.Name.Length) });
+            
         SW.WriteList((Names.Select(x => x.Name).ToList()));
 
         int ImportedPublicExportHashesOffset = SW.WrittenBytes.Count + 44;
@@ -111,6 +145,12 @@ public class Serializer
                 FilterFlags = exportMap.FilterFlags
             });
 
+        int ExportBundleEntriesOffset = SW.WrittenBytes.Count + 44;
+        SW.Write(ExportBundleEntries);
+        
+        int GraphDataOffset = SW.WrittenBytes.Count + 44;
+        SW.Write(GraphData);
+        
         uint HeaderSize = (uint)SW.WrittenBytes.Count + 44;
 
         uint CookedHeaderSize = ogSummary.CookedHeaderSize;
@@ -122,6 +162,7 @@ public class Serializer
         // summary part
         FZenPackageSummary Summary = new FZenPackageSummary()
         {
+            bHasVersioningInfo = 0,
             HeaderSize = HeaderSize,
             Name = ogSummary.Name,
             PackageFlags = ogSummary.PackageFlags,
@@ -129,9 +170,10 @@ public class Serializer
             ImportedPublicExportHashesOffset = ImportedPublicExportHashesOffset,
             ImportMapOffset = ImportedPublicExportHashesOffset,
             ExportMapOffset = ExportMapOffset,
-            
+            ExportBundleEntriesOffset = ExportBundleEntriesOffset,
+            GraphDataOffset = GraphDataOffset
         };
-        SW.WriteStruct(Summary);
+        SW.InsertStruct(Summary,0);
 
         // properties
 
