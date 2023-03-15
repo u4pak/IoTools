@@ -14,4 +14,5 @@ NameMap.Add("/Game/");
 File.WriteAllBytes(@"C:\Users\anker\OneDrive\Documents\IoTools\test.txt", Serializer.SerializeAsset("/Game/Athena/Heroes/Meshes/Bodies/CP_028_Athena_Body", new AssetData()
 {
     NameMap = NameMap
-}, File.ReadAllBytes(@"C:\Users\anker\OneDrive\Desktop\Output\Exports\CP_028_Athena_Body.uasset")));
+}));
+

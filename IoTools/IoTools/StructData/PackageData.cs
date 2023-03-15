@@ -23,6 +23,10 @@ public struct FZenPackageSummary
 public struct FNameEntrySerialized
 {
     public string Name;
+#if NAME_HASHES
+        public readonly ushort NonCasePreservingHash;
+        public readonly ushort CasePreservingHash;
+#endif
 }
 
 public struct FNameMapData

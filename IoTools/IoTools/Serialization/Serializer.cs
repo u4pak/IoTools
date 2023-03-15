@@ -47,7 +47,7 @@ public class Serializer
         return FNameMapData;
     }
     
-    public static byte[] SerializeAsset(string assetPath, AssetData assetData, byte[] originalAssetBytes)
+    public static byte[] SerializeAsset(string assetPath, AssetData assetData)
     {
         StructWriter SW = new();
         IoPackage package = null;
@@ -57,10 +57,24 @@ public class Serializer
         }).Wait();
 
         assetData.NameMapData = SerializeFNameMap(assetData.NameMap, assetData.NameMap.Count, new byte[0]);
+        
+        List<FNameEntrySerialized> Names = package.NameMap.ToList().ConvertAll(x => new FNameEntrySerialized()
+        {
+            Name = x.Name
+        });
+        
+        foreach (var name in assetData.NameMap)
+        {
+            Names.Add(new FNameEntrySerialized()
+            {
+                Name = name
+            });
+        }
 
-        FZenPackageSummary ogSummary = Reader.ReadStruct<FZenPackageSummary>(originalAssetBytes, 0);
-        byte[] properties = new byte[originalAssetBytes.Length - ogSummary.HeaderSize];
-        Buffer.BlockCopy(originalAssetBytes, (int)ogSummary.HeaderSize, properties, 0, properties.Length);
+        byte[] ogBytes = SaveAssetBytes(assetPath);
+        FZenPackageSummary ogSummary = Reader.ReadStruct<FZenPackageSummary>(ogBytes, 0);
+        byte[] properties = new byte[ogBytes.Length - ogSummary.HeaderSize];
+        Buffer.BlockCopy(ogBytes, (int)ogSummary.HeaderSize, properties, 0, properties.Length);
 
         assetData.Summary = ogSummary; // not done with serialization so we're not doing to much like recreating the summary yet, atleast not until all header data is being written.
     
@@ -76,7 +90,7 @@ public class Serializer
         SW.WriteList(assetData.NameMapData.hashes);
         foreach(var length in assetData.NameMapData.lengths)
             SW.Write(length);
-        SW.WriteList(assetData.NameMap);
+        SW.WriteList((Names.Select(x => x.Name).ToList()));
 
         int ImportedPublicExportHashesOffset = SW.WrittenBytes.Count + 44;
         SW.Write(new byte[] { 0x0 }); // hashes here are not needed so we don't have to write them.
@@ -120,14 +134,6 @@ public class Serializer
         SW.WriteStruct(Summary);
 
         // properties
-        List<FNameEntrySerialized> Names = new();
-        foreach (var name in assetData.NameMap)
-        {
-            Names.Add(new FNameEntrySerialized()
-            {
-                Name = name
-            });
-        }
 
         for (int i = 0; i < package.ExportMap.Length; i++)
         {
