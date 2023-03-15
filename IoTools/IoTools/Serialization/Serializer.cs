@@ -1,4 +1,6 @@
-﻿using IoTools.Readers;
+﻿using CUE4Parse.UE4.Assets;
+using IoTools.Providers;
+using IoTools.Readers;
 using IoTools.StructData;
 using IoTools.Writers;
 
@@ -43,9 +45,15 @@ public class Serializer
         return FNameMapData;
     }
     
-    public static byte[] SerializeAsset(AssetData assetData, byte[] originalAssetBytes)
+    public static byte[] SerializeAsset(string assetPath, AssetData assetData, byte[] originalAssetBytes)
     {
         StructWriter SW = new();
+        IoPackage package = null;
+        Task.Run(async () =>
+        {
+            package = (IoPackage)Provider.provider.LoadPackage(assetPath);
+        }).Wait();
+
         assetData.NameMapData = SerializeFNameMap(assetData.NameMap, assetData.NameMap.Count, new byte[0]);
 
         FZenPackageSummary ogSummary = Reader.ReadStruct<FZenPackageSummary>(originalAssetBytes, 0);
@@ -72,8 +80,20 @@ public class Serializer
         SW.Write(new byte[] { 0x0 }); // hashes here are not needed so we don't have to write them.
 
         int ExportMapOffset = SW.WrittenBytes.Count + 44;
-        foreach (var exportMap in assetData.ExportMaps)
-            SW.WriteStruct(exportMap);
+        foreach (var exportMap in package.ExportMap)
+            SW.WriteStruct(new FExportMapEntry()
+            {
+                CookedSerialOffset = exportMap.CookedSerialOffset,
+                CookedSerialSize = exportMap.CookedSerialSize,
+                ObjectName = exportMap.ObjectName,
+                OuterIndex = exportMap.OuterIndex,
+                ClassIndex = exportMap.ClassIndex,
+                SuperIndex = exportMap.SuperIndex,
+                TemplateIndex = exportMap.TemplateIndex,
+                PublicExportHash = exportMap.PublicExportHash,
+                ObjectFlags = exportMap.ObjectFlags,
+                FilterFlags = exportMap.FilterFlags
+            });
 
         uint HeaderSize = (uint)SW.WrittenBytes.Count + 44;
 
