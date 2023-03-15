@@ -1,11 +1,7 @@
-﻿using IoTools.StructData;
-using IoTools.Writers;
+﻿using IoTools.Serialization;
+using IoTools.StructData;
 
-StructWriter SW = new();
-
-SW.WriteStruct<AssetData>(new AssetData()
+File.WriteAllBytes(@"C:\Users\anker\OneDrive\Documents\IoTools\test.txt", Serializer.SerializeAsset(new AssetData()
 {
     
-});
-
-File.WriteAllBytes(@"C:\Users\anker\OneDrive\Documents\IoTools\test.txt", SW.WrittenBytes.ToArray());
+}, new byte[0]));

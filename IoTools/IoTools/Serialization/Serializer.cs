@@ -1,4 +1,5 @@
-﻿using IoTools.StructData;
+﻿using IoTools.Readers;
+using IoTools.StructData;
 using IoTools.Writers;
 
 namespace IoTools.Serialization;
@@ -46,6 +47,15 @@ public class Serializer
         StructWriter SW = new();
         assetData.NameMapData = SerializeFNameMap(assetData.NameMap, assetData.NameMap.Count, new byte[0]);
 
+        SW.WriteStruct(assetData); // write our final struct to return
+
+        FZenPackageSummary ogSummary = Reader.ReadStruct<FZenPackageSummary>(originalAssetBytes, 0);
+        byte[] properties = new byte[originalAssetBytes.Length - ogSummary.HeaderSize];
+        Buffer.BlockCopy(originalAssetBytes, (int)ogSummary.HeaderSize, properties, 0, properties.Length);
+        SW.Write(properties); // couldn't be asked serializing properties atm.
+
+        assetData.Summary = ogSummary; // not done with serialization so we're not doing to much like recreating the summary yet, atleast not until all header data is being written.
+        
         return SW.WrittenBytes.ToArray();
     }
     
