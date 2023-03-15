@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IoTools", "IoTools\IoTools.csproj", "{F1EA52E2-9A16-4A06-9317-ADB6D1CB58ED}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CUE4Parse", "..\CUE4Parse\CUE4Parse.csproj", "{D043B362-F18C-4640-AF93-666852597488}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CUE4Parse", "..\CUE4Parse\CUE4Parse.csproj", "{13E6A872-8E25-4A83-B1FC-AF42327E908A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,9 +14,9 @@ Global
 		{F1EA52E2-9A16-4A06-9317-ADB6D1CB58ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F1EA52E2-9A16-4A06-9317-ADB6D1CB58ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F1EA52E2-9A16-4A06-9317-ADB6D1CB58ED}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D043B362-F18C-4640-AF93-666852597488}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D043B362-F18C-4640-AF93-666852597488}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D043B362-F18C-4640-AF93-666852597488}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D043B362-F18C-4640-AF93-666852597488}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13E6A872-8E25-4A83-B1FC-AF42327E908A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13E6A872-8E25-4A83-B1FC-AF42327E908A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13E6A872-8E25-4A83-B1FC-AF42327E908A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13E6A872-8E25-4A83-B1FC-AF42327E908A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
