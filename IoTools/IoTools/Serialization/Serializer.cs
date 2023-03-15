@@ -54,7 +54,7 @@ public class Serializer
 
         assetData.Summary = ogSummary; // not done with serialization so we're not doing to much like recreating the summary yet, atleast not until all header data is being written.
     
-        SW.WriteStruct(ogSummary);
+        //SW.WriteStruct(ogSummary);
         FNameBlankData FNameBlankData = new FNameBlankData()
         {
             hash = assetData.NameMapData.hash,
@@ -63,21 +63,38 @@ public class Serializer
         };
         SW.WriteStruct(FNameBlankData);
 
-        foreach (var hash in assetData.NameMapData.hashes)
-            SW.Write(BitConverter.GetBytes(hash));
-
+        SW.WriteList(assetData.NameMapData.hashes);
         foreach(var length in assetData.NameMapData.lengths)
             SW.Write(length);
-
         SW.WriteList(assetData.NameMap);
-        
-        /*foreach (var name in assetData.NameMap)
-            SW.Write(Encoding.ASCII.GetBytes(name.name));*/
-        
+
+        int ImportedPublicExportHashesOffset = SW.WrittenBytes.Count + 44;
         SW.Write(new byte[] { 0x0 }); // hashes here are not needed so we don't have to write them.
 
+        int ExportMapOffset = SW.WrittenBytes.Count + 44;
         foreach (var exportMap in assetData.ExportMaps)
             SW.WriteStruct(exportMap);
+
+        uint HeaderSize = (uint)SW.WrittenBytes.Count + 44;
+
+        uint CookedHeaderSize = ogSummary.CookedHeaderSize;
+        if (HeaderSize > ogSummary.HeaderSize)
+            CookedHeaderSize += HeaderSize - ogSummary.HeaderSize;
+        else
+            CookedHeaderSize -= ogSummary.HeaderSize - HeaderSize;
+
+                // summary part
+        FZenPackageSummary Summary = new FZenPackageSummary()
+        {
+            HeaderSize = HeaderSize,
+            Name = ogSummary.Name,
+            PackageFlags = ogSummary.PackageFlags,
+            CookedHeaderSize = CookedHeaderSize,
+            ImportedPublicExportHashesOffset = ImportedPublicExportHashesOffset,
+            ImportMapOffset = ImportedPublicExportHashesOffset,
+            ExportMapOffset = ExportMapOffset,
+            
+        };
         
         SW.Write(properties); // couldn't be asked serializing properties atm.
         

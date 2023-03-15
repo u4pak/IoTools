@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
 namespace IoTools.Writers;
@@ -38,43 +39,68 @@ public class StructWriter : BinaryWriter
         {
             foreach(int datai in data.ConvertAll(x => int.Parse(x.ToString())))
             {
-                Write(Convert.ToByte(datai));
+                Write(BitConverter.GetBytes(datai));
             }
         }
         else if (typeof(T) == typeof(long))
         {
             foreach(int datai in data.ConvertAll(x => long.Parse(x.ToString())))
             {
-                Write(Convert.ToByte(datai));
+                Write(BitConverter.GetBytes(datai));
             }
         }
         else if (typeof(T) == typeof(ulong))
         {
             foreach(int datai in data.ConvertAll(x => ulong.Parse(x.ToString())))
             {
-                Write(Convert.ToByte(datai));
+                Write(BitConverter.GetBytes(datai));
             }
         }
         else if (typeof(T) == typeof(ushort))
         {
             foreach(int datai in data.ConvertAll(x => ushort.Parse(x.ToString())))
             {
-                Write(Convert.ToByte(datai));
+                Write(BitConverter.GetBytes(datai));
             }
         }
         else if (typeof(T) == typeof(short))
         {
             foreach(int datai in data.ConvertAll(x => short.Parse(x.ToString())))
             {
-                Write(Convert.ToByte(datai));
+                Write(BitConverter.GetBytes(datai));
             }
         }
         else if (typeof(T) == typeof(uint))
         {
             foreach(int datai in data.ConvertAll(x => uint.Parse(x.ToString())))
             {
+                Write(BitConverter.GetBytes(datai));
+            }
+        }
+        else if (typeof(T) == typeof(byte))
+        {
+            foreach(int datai in data.ConvertAll(x => byte.Parse(x.ToString())))
+            {
                 Write(Convert.ToByte(datai));
             }
+        }
+        else if (typeof(T) == typeof(byte[]))
+        {
+            // probably bad code but it'll do for now.
+            
+            List<byte[]> byteArrayList = new List<byte[]>();
+            BinaryFormatter formatter = new BinaryFormatter();
+            
+            foreach(T datai in data)
+            {
+                using (MemoryStream stream = new MemoryStream()) {
+                    formatter.Serialize(stream, datai);
+                    byteArrayList.Add(stream.ToArray());
+                }
+            }
+
+            foreach (var bytearray in byteArrayList)
+                Write(bytearray);
         }
     }
 

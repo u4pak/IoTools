@@ -54,3 +54,9 @@ public struct FExportMapEntry
     public EObjectFlags ObjectFlags;
     public byte FilterFlags; // EExportFilterFlags: client/server flags
 }
+
+public struct FExportBundleEntry
+{
+    public uint LocalExportIndex;
+    public EExportCommandType CommandType;
+}
