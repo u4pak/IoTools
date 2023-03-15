@@ -4,7 +4,6 @@ C# Open-source class library for turning deserialized IO Store asset data into S
 
 #### Serialization
 <details>
-  It's super simple to serialize your an asset Example:
 <summary>Serialization</summary>
   ```csharp
   File.WriteAllBytes({path to write at}, Serializer.SerializeAsset(new AssetData()
