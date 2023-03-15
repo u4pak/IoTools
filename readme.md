@@ -26,7 +26,7 @@ Serialization is super simple below is a preview on how to serialize an asset
   File.WriteAllBytes({path to write at}, Serializer.SerializeAsset({asset path}, new AssetData()
   {
     NameMap = NameMap, // new name map of the asset
-  }, {Your original assets bytes here});
+  }));;
 ```
 
 
