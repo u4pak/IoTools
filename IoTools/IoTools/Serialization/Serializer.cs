@@ -47,17 +47,24 @@ public class Serializer
     {
         StructWriter SW = new();
         assetData.NameMapData = SerializeFNameMap(assetData.NameMap, assetData.NameMap.Count, new byte[0]);
-        
-        SW.WriteStruct(assetData);
-        
+
         FZenPackageSummary ogSummary = Reader.ReadStruct<FZenPackageSummary>(originalAssetBytes, 0);
         byte[] properties = new byte[originalAssetBytes.Length - ogSummary.HeaderSize];
         Buffer.BlockCopy(originalAssetBytes, (int)ogSummary.HeaderSize, properties, 0, properties.Length);
-        SW.Write(properties); // couldn't be asked serializing properties atm.
 
         assetData.Summary = ogSummary; // not done with serialization so we're not doing to much like recreating the summary yet, atleast not until all header data is being written.
+    
+        SW.WriteStruct(ogSummary);
+        FNameBlankData FNameBlankData = new FNameBlankData()
+        {
+            hash = assetData.NameMapData.hash,
+            count = assetData.NameMapData.count,
+            bytesToTakeUp = assetData.NameMapData.bytesToTakeUp
+        };
+        SW.WriteStruct(FNameBlankData);
         
         
+        SW.Write(properties); // couldn't be asked serializing properties atm.
         
         return SW.WrittenBytes.ToArray();
     }

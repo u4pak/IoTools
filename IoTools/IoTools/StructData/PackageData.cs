@@ -32,3 +32,10 @@ public struct FNameMapData
     public List<uint> hashes;
     public List<byte[]> lengths;
 }
+
+public struct FNameBlankData
+{
+    public uint count;
+    public uint bytesToTakeUp;
+    public ulong hash;
+}
