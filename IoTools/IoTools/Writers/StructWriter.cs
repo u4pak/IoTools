@@ -22,11 +22,8 @@ public class StructWriter : BinaryWriter
         WrittenBytes.InsertRange(offset,buffer);
     }
 
-    public unsafe void Write<T>(T data)
+    public unsafe void Write(byte[] buffer)
     {
-        int size = Unsafe.SizeOf<T>();
-        var buffer = new byte[size];
-        Unsafe.WriteUnaligned(ref buffer[0], data);
         WrittenBytes.AddRange(buffer);
     }
 }

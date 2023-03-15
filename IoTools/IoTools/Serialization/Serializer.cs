@@ -1,4 +1,5 @@
-﻿using IoTools.Readers;
+﻿using System.Text;
+using IoTools.Readers;
 using IoTools.StructData;
 using IoTools.Writers;
 
@@ -62,7 +63,15 @@ public class Serializer
             bytesToTakeUp = assetData.NameMapData.bytesToTakeUp
         };
         SW.WriteStruct(FNameBlankData);
+
+        foreach (var hash in assetData.NameMapData.hashes)
+            SW.Write(BitConverter.GetBytes(hash));
+
+        foreach(var length in assetData.NameMapData.lengths)
+            SW.Write(length);
         
+        foreach (var name in assetData.NameMap)
+            SW.Write(Encoding.ASCII.GetBytes(name.name));
         
         SW.Write(properties); // couldn't be asked serializing properties atm.
         
