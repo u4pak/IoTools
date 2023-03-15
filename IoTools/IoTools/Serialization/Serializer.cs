@@ -130,20 +130,34 @@ public class Serializer
         SW.Write(new byte[] { 0x0 }); // hashes here are not needed so we don't have to write them.
 
         int ExportMapOffset = SW.WrittenBytes.Count + 44;
-        foreach (var exportMap in package.ExportMap)
-            SW.WriteStruct(new FExportMapEntry()
+        for(int i = 0; i < package.ExportMap.Length; i++)
+        {
+            int offset = ogSummary.ExportMapOffset;
+            offset += 72 * i;
+            FExportMapEntry ogEntry = Reader.ReadStruct<FExportMapEntry>(ogBytes, offset);
+
+            ulong CookedSerialOffset = package.ExportMap[i].CookedSerialOffset;
+            if (ExportMapOffset > ogSummary.ExportMapOffset)
+                CookedSerialOffset += (ulong)ExportMapOffset - (ulong)ogSummary.ExportMapOffset;
+            else
+                CookedSerialOffset -= (ulong)ogSummary.ExportMapOffset - (ulong)ExportMapOffset;
+            
+            FExportMapEntry Entry = new FExportMapEntry()
             {
-                CookedSerialOffset = exportMap.CookedSerialOffset,
-                CookedSerialSize = exportMap.CookedSerialSize,
-                ObjectName = exportMap.ObjectName,
-                OuterIndex = exportMap.OuterIndex,
-                ClassIndex = exportMap.ClassIndex,
-                SuperIndex = exportMap.SuperIndex,
-                TemplateIndex = exportMap.TemplateIndex,
-                PublicExportHash = exportMap.PublicExportHash,
-                ObjectFlags = exportMap.ObjectFlags,
-                FilterFlags = exportMap.FilterFlags
-            });
+                CookedSerialOffset = CookedSerialOffset,
+                CookedSerialSize = package.ExportMap[i].CookedSerialSize,
+                ObjectName = package.ExportMap[i].ObjectName,
+                OuterIndex = package.ExportMap[i].OuterIndex,
+                ClassIndex = package.ExportMap[i].ClassIndex,
+                SuperIndex = package.ExportMap[i].SuperIndex,
+                TemplateIndex = package.ExportMap[i].TemplateIndex,
+                PublicExportHash = package.ExportMap[i].PublicExportHash,
+                ObjectFlags = package.ExportMap[i].ObjectFlags,
+                FilterFlags = package.ExportMap[i].FilterFlags
+            };
+            SW.WriteStruct(Entry);
+        }
+            
 
         int ExportBundleEntriesOffset = SW.WrittenBytes.Count + 44;
         SW.Write(ExportBundleEntries);
