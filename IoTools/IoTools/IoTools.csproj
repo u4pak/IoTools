@@ -11,4 +11,8 @@
       <ProjectReference Include="..\..\CUE4Parse\CUE4Parse.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Output" />
+    </ItemGroup>
+
 </Project>
