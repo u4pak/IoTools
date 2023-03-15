@@ -12,5 +12,5 @@ C# Open-source class library for turning deserialized IO Store asset data into S
     NameMap = NameMap,
     ExportMaps = ExportMaps
   }, File.ReadAllBytes(@"C:\Users\anker\OneDrive\Desktop\Output\Exports\CP_028_Athena_Body.uasset")));
- ```
+```
 </details>
