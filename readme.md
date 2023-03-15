@@ -20,31 +20,12 @@ Provider.provider = Output.FProvider; // set the provider IOTools uses to our ne
 Serialization is super simple below is a preview on how to serialize an asset
 
 ```csharp
-  IoPackage Package = (IoPackage)Output.FProvider.LoadPackage("/Game/Athena/Heroes/Meshes/Bodies/CP_028_Athena_Body");
   List<string> NameMap = new();
   NameMap.Add("/Game/");
-  List<FExportMapEntry> ExportMaps = new();
-  foreach (var exportMap in Package.ExportMap)
-  {
-    ExportMaps.Add(new FExportMapEntry()
-    {
-        CookedSerialOffset = exportMap.CookedSerialOffset,
-        CookedSerialSize = exportMap.CookedSerialSize,
-        ObjectName = exportMap.ObjectName,
-        OuterIndex = exportMap.OuterIndex,
-        ClassIndex = exportMap.ClassIndex,
-        SuperIndex = exportMap.SuperIndex,
-        TemplateIndex = exportMap.TemplateIndex,
-        PublicExportHash = exportMap.PublicExportHash,
-        ObjectFlags = exportMap.ObjectFlags,
-        FilterFlags = exportMap.FilterFlags
-    });
-  }
 
-  File.WriteAllBytes({path to write at}, Serializer.SerializeAsset(new AssetData()
+  File.WriteAllBytes({path to write at}, Serializer.SerializeAsset({asset path}, new AssetData()
   {
     NameMap = NameMap, // new name map of the asset
-    ExportMaps = ExportMaps // export maps
   }, {Your original assets bytes here});
 ```
 
