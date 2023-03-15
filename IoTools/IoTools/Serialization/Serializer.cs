@@ -1,5 +1,4 @@
-﻿using System.Text;
-using IoTools.Readers;
+﻿using IoTools.Readers;
 using IoTools.StructData;
 using IoTools.Writers;
 

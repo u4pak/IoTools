@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
-using IoTools.StructData;
 
 namespace IoTools.Writers;
 

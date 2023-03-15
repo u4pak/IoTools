@@ -1,6 +1,4 @@
-﻿using CUE4Parse.UE4.IO.Objects;
-
-namespace IoTools.StructData;
+﻿namespace IoTools.StructData;
 
 public struct AssetData
 {

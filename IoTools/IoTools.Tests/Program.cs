@@ -1,5 +1,4 @@
 ﻿using CUE4Parse.UE4.Assets;
-using IoTools.Readers;
 using IoTools.Serialization;
 using IoTools.StructData;
 using IoTools.Tests;
