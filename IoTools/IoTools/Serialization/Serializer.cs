@@ -7,14 +7,14 @@ namespace IoTools.Serialization;
 
 public class Serializer
 {
-    private static FNameMapData SerializeFNameMap(List<FNameEntrySerialized> FNameEntrysSerialized, int LastIndex, byte[] originalAssetBytes) // this is only ever going to be used by this so lets just make this private. :shrug:
+    private static FNameMapData SerializeFNameMap(List<string> FNameEntrysSerialized, int LastIndex, byte[] originalAssetBytes) // this is only ever going to be used by this so lets just make this private. :shrug:
     {
         FNameMapData FNameMapData = new(); // probably a trash way of doing this but it's most likely gonna be changed in the future.
         FNameMapData.lengths = new();
         FNameMapData.hashes = new();
         uint bytesTheNameMapTakesUp = 0;
         foreach (var Name in FNameEntrysSerialized)
-            bytesTheNameMapTakesUp += (uint)Name.name.Length;
+            bytesTheNameMapTakesUp += (uint)Name.Length;
         FNameMapData.bytesToTakeUp = bytesTheNameMapTakesUp;
 
         FNameMapData.hash = 3244556288; // Ig it's kinda just a hash idrk though just guessing.
@@ -35,9 +35,9 @@ public class Serializer
             {
                 
             }*/
-            FNameMapData.hashes.Add(To32BitFnv1aHash(FNameEntrysSerialized[i].name.ToLower()));
+            FNameMapData.hashes.Add(To32BitFnv1aHash(FNameEntrysSerialized[i].ToLower()));
             FNameMapData.hashes.Add(0);
-            FNameMapData.lengths.Add(new byte[] { 0x0, Convert.ToByte(FNameEntrysSerialized[i].name.Length)});
+            FNameMapData.lengths.Add(new byte[] { 0x0, Convert.ToByte(FNameEntrysSerialized[i].Length)});
         }
         FNameMapData.count = (uint)FNameEntrysSerialized.Count;
         
@@ -69,9 +69,11 @@ public class Serializer
 
         foreach(var length in assetData.NameMapData.lengths)
             SW.Write(length);
+
+        SW.WriteList(assetData.NameMap);
         
-        foreach (var name in assetData.NameMap)
-            SW.Write(Encoding.ASCII.GetBytes(name.name));
+        /*foreach (var name in assetData.NameMap)
+            SW.Write(Encoding.ASCII.GetBytes(name.name));*/
         
         SW.Write(new byte[] { 0x0 }); // hashes here are not needed so we don't have to write them.
 

@@ -11,12 +11,8 @@ var Output = new Output(@"C:\Users\anker\OneDrive\Desktop\Fortnite\FortniteGame\
 IoPackage Package = (IoPackage)Output.FProvider.LoadPackage("/Game/Athena/Heroes/Meshes/Bodies/CP_028_Athena_Body");
 
 
-List<FNameEntrySerialized> NameMap = new();
-
-NameMap.Add(new FNameEntrySerialized()
-{
-    name = "/Game/"
-});
+List<string> NameMap = new();
+NameMap.Add("/Game/");
 
 List<FExportMapEntry> ExportMaps = new();
 foreach (var exportMap in Package.ExportMap)

@@ -6,6 +6,6 @@ public struct AssetData
 {
     public FZenPackageSummary Summary;
     public FNameMapData NameMapData;
-    public List<FNameEntrySerialized> NameMap;
+    public List<string> NameMap;
     public List<FExportMapEntry> ExportMaps;
 }
