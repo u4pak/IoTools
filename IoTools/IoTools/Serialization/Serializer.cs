@@ -3,6 +3,8 @@ using IoTools.Providers;
 using IoTools.Readers;
 using IoTools.StructData;
 using IoTools.Writers;
+using PropertyEditor.Core;
+using static IoTools.Providers.Provider;
 
 namespace IoTools.Serialization;
 
@@ -103,7 +105,7 @@ public class Serializer
         else
             CookedHeaderSize -= ogSummary.HeaderSize - HeaderSize;
 
-                // summary part
+        // summary part
         FZenPackageSummary Summary = new FZenPackageSummary()
         {
             HeaderSize = HeaderSize,
@@ -115,8 +117,24 @@ public class Serializer
             ExportMapOffset = ExportMapOffset,
             
         };
-        
-        SW.Write(properties); // couldn't be asked serializing properties atm.
+        SW.WriteStruct(Summary);
+
+        // properties
+        List<FNameEntrySerialized> Names = new();
+        foreach (var name in assetData.NameMap)
+        {
+            Names.Add(new FNameEntrySerialized()
+            {
+                Name = name
+            });
+        }
+
+        for (int i = 0; i < package.ExportMap.Length; i++)
+        {
+            List<byte> buffer = new();
+            SW.Write(new PropertySerializer(package.ExportsLazy[i].Value.ExportType, provider.MappingsForGame,
+                package.ExportsLazy[i].Value.Properties).Serialize(Names));
+        }
         
         return SW.WrittenBytes.ToArray();
     }
