@@ -36,3 +36,8 @@ Serialization is super simple below is a preview on how to serialize an asset
     ExportMaps = ExportMaps // export maps
   }, {Your original assets bytes here});
 ```
+
+
+## Contributing
+
+You're always welcome to make a pull request for any contribution you feel will make the project better.
