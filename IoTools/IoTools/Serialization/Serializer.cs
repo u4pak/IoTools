@@ -223,6 +223,13 @@ public class Serializer
         for (int i = 0; i < package.ExportMap.Length; i++)
         {
             var index = package.ExportBundleEntries.ToList().FindIndex(x => x.LocalExportIndex == i && x.CommandType == EExportCommandType.ExportCommandType_Create);
+
+            int indexOfDic = assetData.Properties.Keys.ToList()
+                .FindIndex(x => x == package.ExportsLazy[index].Value.Name);
+            
+            if (indexOfDic != -1)
+                package.ExportsLazy[index].Value.Properties.AddRange(assetData.Properties.ElementAt(indexOfDic).Value);
+            
             List<byte> buffer = new();
             SW.Write(new PropertySerializer(package.ExportsLazy[index].Value.ExportType, provider.MappingsForGame,
                 package.ExportsLazy[index].Value.Properties).Serialize(Names));
