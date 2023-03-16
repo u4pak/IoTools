@@ -80,7 +80,7 @@ public class Serializer
         return hashes;
     }
     
-    public static byte[] SerializeExportEntry(FExportMapEntry ExportMap)
+    private static byte[] SerializeExportEntry(FExportMapEntry ExportMap)
     {
         StructWriter SW = new();
         
