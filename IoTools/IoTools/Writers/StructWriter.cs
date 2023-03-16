@@ -42,6 +42,12 @@ public class StructWriter : BinaryWriter
     {
         WrittenBytes.AddRange(buffer);
     }
+
+    public void ReplaceWrite(byte[] buffer, int offset)
+    {
+        WrittenBytes.RemoveRange(offset, buffer.Length);
+        WrittenBytes.InsertRange(offset, buffer);
+    }
     
     public void Insert(byte[] buffer, int offset)
     {

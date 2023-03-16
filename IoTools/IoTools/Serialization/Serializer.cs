@@ -1,10 +1,14 @@
 ﻿using CUE4Parse.UE4.Assets;
+using CUE4Parse.UE4.IO.Objects;
+using CUE4Parse.UE4.Versions;
 using IoTools.Providers;
 using IoTools.Readers;
 using IoTools.StructData;
 using IoTools.Writers;
 using PropertyEditor.Core;
 using static IoTools.Providers.Provider;
+using FExportMapEntry = IoTools.StructData.FExportMapEntry;
+using FZenPackageSummary = IoTools.StructData.FZenPackageSummary;
 
 namespace IoTools.Serialization;
 
@@ -74,6 +78,26 @@ public class Serializer
         return hashes;
     }
     
+    public static byte[] SerializeExportEntry(FExportMapEntry ExportMap)
+    {
+        StructWriter SW = new();
+        
+        SW.WriteStruct(ExportMap.CookedSerialOffset);
+        SW.WriteStruct(ExportMap.CookedSerialSize);
+        SW.WriteStruct(ExportMap.ObjectName._nameIndex);
+        SW.WriteStruct(ExportMap.ObjectName.ExtraIndex);
+        SW.WriteStruct(ExportMap.OuterIndex.TypeAndId);
+        SW.WriteStruct(ExportMap.ClassIndex.TypeAndId);
+        SW.WriteStruct(ExportMap.SuperIndex.TypeAndId);
+        SW.WriteStruct(ExportMap.TemplateIndex.TypeAndId);
+        SW.WriteStruct(ExportMap.PublicExportHash);
+        SW.WriteStruct(ExportMap.ObjectFlags);
+        SW.WriteStruct(ExportMap.FilterFlags);
+        SW.Write(new byte[] { 0, 0, 0 });
+
+        return SW.WrittenBytes.ToArray();
+    }
+    
     public static byte[] SerializeAsset(string assetPath, AssetData assetData)
     {
         StructWriter SW = new();
@@ -98,11 +122,7 @@ public class Serializer
 
         byte[] ogBytes = SaveAssetBytes(assetPath);
         FZenPackageSummary ogSummary = Reader.ReadStruct<FZenPackageSummary>(ogBytes, 0);
-        byte[] ExportBundleEntries = new byte[ogSummary.GraphDataOffset - ogSummary.ExportBundleEntriesOffset];
-        byte[] GraphData = new byte[ogSummary.HeaderSize - ogSummary.GraphDataOffset];
-        Buffer.BlockCopy(ogBytes, ogSummary.ExportBundleEntriesOffset, ExportBundleEntries, 0, ExportBundleEntries.Length); // this is temporary.
-        Buffer.BlockCopy(ogBytes, ogSummary.GraphDataOffset, GraphData, 0, GraphData.Length); // this is temporary.
-        
+
         /*byte[] properties = new byte[ogBytes.Length - ogSummary.HeaderSize];
         Buffer.BlockCopy(ogBytes, (int)ogSummary.HeaderSize, properties, 0, properties.Length);*/
 
@@ -126,21 +146,41 @@ public class Serializer
             
         SW.WriteList((Names.Select(x => x.Name).ToList()));
 
-        int ImportedPublicExportHashesOffset = SW.WrittenBytes.Count + 44;
-        SW.Write(new byte[] { 0x0 }); // hashes here are not needed so we don't have to write them.
+        if (provider.Versions.Game >= EGame.GAME_UE5_2)
+            SW.WriteStruct((ulong)0);
 
+        int ImportedPublicExportHashesOffset = SW.WrittenBytes.Count + 44;
+        SW.Write(new byte[] { 0 }); // hashes here are not needed so we don't have to write them.
+
+        int ImportMapOffset = SW.WrittenBytes.Count + 44;
+        SW.WriteList(package.ImportMap.Select(x => x.TypeAndId).ToList());
+        
         int ExportMapOffset = SW.WrittenBytes.Count + 44;
+        int ExportMapSize = 72 * package.ExportMap.Length;
+
+        int ExportBundleEntriesOffset = SW.WrittenBytes.Count + 44 + ExportMapSize;
+        SW.WriteList(package.ExportBundleEntries.ToList());
+        
+        int GraphDataOffset = SW.WrittenBytes.Count + 44 + ExportMapSize;
+        SW.WriteList(package.ExportBundleHeaders.ToList());
+        
+        uint HeaderSize = (uint)SW.WrittenBytes.Count + 44 + (uint)ExportMapSize;
+
+        uint CookedHeaderSize = ogSummary.CookedHeaderSize;
+        if (HeaderSize > ogSummary.HeaderSize)
+            CookedHeaderSize += HeaderSize - ogSummary.HeaderSize;
+        else
+            CookedHeaderSize -= ogSummary.HeaderSize - HeaderSize;
+
+        
+        ulong SerialOffset = 0;
         for(int i = 0; i < package.ExportMap.Length; i++)
         {
             int offset = ogSummary.ExportMapOffset;
             offset += 72 * i;
             FExportMapEntry ogEntry = Reader.ReadStruct<FExportMapEntry>(ogBytes, offset);
 
-            ulong CookedSerialOffset = package.ExportMap[i].CookedSerialOffset;
-            if (ExportMapOffset > ogSummary.ExportMapOffset)
-                CookedSerialOffset += (ulong)ExportMapOffset - (ulong)ogSummary.ExportMapOffset;
-            else
-                CookedSerialOffset -= (ulong)ogSummary.ExportMapOffset - (ulong)ExportMapOffset;
+            ulong CookedSerialOffset = CookedHeaderSize + SerialOffset;
 
             byte[] PropertySize = new PropertySerializer(package.ExportsLazy[i].Value.ExportType, provider.MappingsForGame,
                 package.ExportsLazy[i].Value.Properties).Serialize(Names);
@@ -150,39 +190,17 @@ public class Serializer
                 CookedSerialSize -= package.ExportMap[i].CookedSerialSize - (ulong)PropertySize.Length;
             else
                 CookedSerialSize += (ulong)PropertySize.Length - package.ExportMap[i].CookedSerialSize;
-                
+
+            SerialOffset += CookedSerialSize;
             
-            FExportMapEntry Entry = new FExportMapEntry()
+            FExportMapEntry Entry = ogEntry with
             {
                 CookedSerialOffset = CookedSerialOffset,
-                CookedSerialSize = CookedSerialSize,
-                ObjectName = package.ExportMap[i].ObjectName,
-                OuterIndex = package.ExportMap[i].OuterIndex,
-                ClassIndex = package.ExportMap[i].ClassIndex,
-                SuperIndex = package.ExportMap[i].SuperIndex,
-                TemplateIndex = package.ExportMap[i].TemplateIndex,
-                PublicExportHash = package.ExportMap[i].PublicExportHash,
-                ObjectFlags = package.ExportMap[i].ObjectFlags,
-                FilterFlags = package.ExportMap[i].FilterFlags
+                CookedSerialSize = CookedSerialSize
             };
-            SW.WriteStruct(Entry);
+            SW.Insert(SerializeExportEntry(Entry), ExportMapOffset + 72 * i - 44);
         }
-            
-
-        int ExportBundleEntriesOffset = SW.WrittenBytes.Count + 44;
-        SW.Write(ExportBundleEntries);
         
-        int GraphDataOffset = SW.WrittenBytes.Count + 44;
-        SW.Write(GraphData);
-        
-        uint HeaderSize = (uint)SW.WrittenBytes.Count + 44;
-
-        uint CookedHeaderSize = ogSummary.CookedHeaderSize;
-        if (HeaderSize > ogSummary.HeaderSize)
-            CookedHeaderSize += HeaderSize - ogSummary.HeaderSize;
-        else
-            CookedHeaderSize -= ogSummary.HeaderSize - HeaderSize;
-
         // summary part
         FZenPackageSummary Summary = new FZenPackageSummary()
         {
@@ -192,20 +210,22 @@ public class Serializer
             PackageFlags = ogSummary.PackageFlags,
             CookedHeaderSize = CookedHeaderSize,
             ImportedPublicExportHashesOffset = ImportedPublicExportHashesOffset,
-            ImportMapOffset = ImportedPublicExportHashesOffset,
+            ImportMapOffset = ImportMapOffset,
             ExportMapOffset = ExportMapOffset,
             ExportBundleEntriesOffset = ExportBundleEntriesOffset,
             GraphDataOffset = GraphDataOffset
         };
         SW.InsertStruct(Summary,0);
 
+        
         // properties
 
         for (int i = 0; i < package.ExportMap.Length; i++)
         {
+            var index = package.ExportBundleEntries.ToList().FindIndex(x => x.LocalExportIndex == i && x.CommandType == EExportCommandType.ExportCommandType_Create);
             List<byte> buffer = new();
-            SW.Write(new PropertySerializer(package.ExportsLazy[i].Value.ExportType, provider.MappingsForGame,
-                package.ExportsLazy[i].Value.Properties).Serialize(Names));
+            SW.Write(new PropertySerializer(package.ExportsLazy[index].Value.ExportType, provider.MappingsForGame,
+                package.ExportsLazy[index].Value.Properties).Serialize(Names));
         }
         
         return SW.WrittenBytes.ToArray();
