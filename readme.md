@@ -20,15 +20,47 @@ Provider.provider = Output.FProvider; // set the provider IOTools uses to our ne
 Serialization is super simple below is a preview on how to serialize an asset
 
 ```csharp
+  AssetData assetData = new AssetData(); // this is so we can control what names we add and what properties we add.
+  File.WriteAllBytes({file path to write bytes in}, Serializer.SerializeAsset({asset path}, assetData);
+```
+
+#### Adding names to the name map
+
+Adding names is one of the easiest ways to mod an asset example below.
+
+```csharp
   List<string> NameMap = new();
   NameMap.Add("/Game/");
 
-  File.WriteAllBytes({file path to write bytes in}, Serializer.SerializeAsset({asset path}, new AssetData()
+  AssetData assetData = new AssetData
   {
-    NameMap = NameMap // names you're adding to the name map
-  }));
+    NameMap = NameMap
+  }; // this is so we can control what names we add and what properties we add.
+  File.WriteAllBytes({file path to write bytes in}, Serializer.SerializeAsset({asset path}, assetData);
 ```
 
+#### Adding properties to an asset
+
+Adding properties is pretty simple, Below is a way of copying a property from 1 asset and putting it into ours.
+
+```csharp
+  IoPackage package1 =
+    (IoPackage)Output.FProvider.LoadPackage("FortniteGame/Content/Athena/Heroes/Meshes/Bodies/CP_028_Athena_Body");
+  IoPackage package2 =
+    (IoPackage)Output.FProvider.LoadPackage("FortniteGame/Content/Athena/Heroes/Meshes/Bodies/CP_Athena_Body_F_Mochi");
+    
+  Dictionary<string, List<FPropertyTag>> Properties = new();
+  List<FPropertyTag> Tags = new();
+
+  int IndexofProperty = package2.ExportsLazy[1].Value.Properties.FindIndex(x => x.Name == "IdleEffectNiagara");
+  Tags.Add(package2.ExportsLazy[1].Value.Properties[IndexofProperty]);
+    
+  AssetData assetData = new AssetData
+  {
+     Properties = Properties
+  }; // this is so we can control what names and/or properties we add to the asset.
+  File.WriteAllBytes({file path to write bytes in}, Serializer.SerializeAsset({asset path}, assetData);
+```
 
 ## Contributing
 
