@@ -130,7 +130,7 @@ public class Serializer
         /*byte[] properties = new byte[ogBytes.Length - ogSummary.HeaderSize];
         Buffer.BlockCopy(ogBytes, (int)ogSummary.HeaderSize, properties, 0, properties.Length);*/
 
-        assetData.Summary = ogSummary; // not done with serialization so we're not doing to much like recreating the summary yet, atleast not until all header data is being written.
+        assetData.Summary = ogSummary;
 
         if (assetData.Properties != null)
         {
