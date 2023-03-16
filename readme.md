@@ -55,6 +55,8 @@ Adding properties is pretty simple, Below is a way of copying a property from 1 
   int IndexofProperty = package2.ExportsLazy[1].Value.Properties.FindIndex(x => x.Name == "IdleEffectNiagara");
   Tags.Add(package2.ExportsLazy[1].Value.Properties[IndexofProperty]);
     
+  Properties.Add(package1.ExportsLazy[1].Value.Name, Tags);
+    
   AssetData assetData = new AssetData
   {
      Properties = Properties
