@@ -109,9 +109,6 @@ public class Serializer
             package = (IoPackage)Provider.provider.LoadPackage(assetPath);
         }).Wait();
 
-        
-        
-        
         List<FNameEntrySerialized> Names = package.NameMap.ToList().ConvertAll(x => new FNameEntrySerialized()
         {
             Name = x.Name

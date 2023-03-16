@@ -26,6 +26,11 @@ Tags.Add(package2.ExportsLazy[1].Value.Properties[IndexofProperty]);
 
 Properties.Add(package1.ExportsLazy[1].Value.Name, Tags);
 
+AssetData assetData = new AssetData
+{
+    Properties = Properties
+}; // this is so we can control what names we add and what properties we add.
+
 File.WriteAllBytes(@"C:\Users\anker\OneDrive\Documents\IoTools\test.txt", Serializer.SerializeAsset("/Game/Athena/Heroes/Meshes/Bodies/CP_028_Athena_Body", new AssetData()
 {
     NameMap = NameMap,
