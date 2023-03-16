@@ -1,5 +1,6 @@
 ﻿using CUE4Parse.UE4.Assets;
 using CUE4Parse.UE4.IO.Objects;
+using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.UE4.Versions;
 using IoTools.Providers;
 using IoTools.Readers;
@@ -8,6 +9,7 @@ using IoTools.Writers;
 using PropertyEditor.Core;
 using static IoTools.Providers.Provider;
 using FExportMapEntry = IoTools.StructData.FExportMapEntry;
+using FNameEntrySerialized = IoTools.StructData.FNameEntrySerialized;
 using FZenPackageSummary = IoTools.StructData.FZenPackageSummary;
 
 namespace IoTools.Serialization;
@@ -107,6 +109,9 @@ public class Serializer
             package = (IoPackage)Provider.provider.LoadPackage(assetPath);
         }).Wait();
 
+        
+        
+        
         List<FNameEntrySerialized> Names = package.NameMap.ToList().ConvertAll(x => new FNameEntrySerialized()
         {
             Name = x.Name
@@ -127,6 +132,36 @@ public class Serializer
         Buffer.BlockCopy(ogBytes, (int)ogSummary.HeaderSize, properties, 0, properties.Length);*/
 
         assetData.Summary = ogSummary; // not done with serialization so we're not doing to much like recreating the summary yet, atleast not until all header data is being written.
+        
+        if (assetData.Properties != null)
+        {
+            for (int i = 0; i < package.ExportMap.Length; i++) // add needed properties to the properties list.
+            {
+                int indexOfDic = assetData.Properties.Keys.ToList()
+                    .FindIndex(x => x == package.ExportsLazy[i].Value.Name);
+
+                if (indexOfDic != -1)
+                {
+                    package.ExportsLazy[i].Value.Properties.AddRange(assetData.Properties.ElementAt(indexOfDic).Value);
+                    foreach (var Value in assetData.Properties.ElementAt(indexOfDic).Value)
+                    {
+                        string path = ((FSoftObjectPath)Value.Tag.GenericValue).AssetPathName.Text;
+                        int index = Names.FindIndex(x => x.Name == path.Split(".")[0]);
+                        if (index < 0)
+                        {
+                            Names.Add(new FNameEntrySerialized()
+                            {
+                                Name = path.Split(".")[0]
+                            });
+                            Names.Add(new FNameEntrySerialized()
+                            {
+                                Name = path.Split(".")[1]
+                            });
+                        }
+                    }
+                }
+            }
+        }
         
         assetData.NameMapData = SerializeFNameMap(Names, assetData.NameMap.Count, new byte[0]);
         
@@ -224,12 +259,6 @@ public class Serializer
         {
             var index = package.ExportBundleEntries.ToList().FindIndex(x => x.LocalExportIndex == i && x.CommandType == EExportCommandType.ExportCommandType_Create);
 
-            int indexOfDic = assetData.Properties.Keys.ToList()
-                .FindIndex(x => x == package.ExportsLazy[index].Value.Name);
-            
-            if (indexOfDic != -1)
-                package.ExportsLazy[index].Value.Properties.AddRange(assetData.Properties.ElementAt(indexOfDic).Value);
-            
             List<byte> buffer = new();
             SW.Write(new PropertySerializer(package.ExportsLazy[index].Value.ExportType, provider.MappingsForGame,
                 package.ExportsLazy[index].Value.Properties).Serialize(Names));
