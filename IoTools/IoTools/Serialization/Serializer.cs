@@ -100,7 +100,7 @@ public class Serializer
         return SW.WrittenBytes.ToArray();
     }
     
-    public static byte[] SerializeAsset(string assetPath, AssetData assetData)
+    public static byte[] SerializeAsset(string assetPath, AssetData assetData, bool? fullReplace = false)
     {
         StructWriter SW = new();
         IoPackage package = null;
@@ -113,6 +113,8 @@ public class Serializer
         {
             Name = x.Name
         });
+
+        if (fullReplace == true) Names = new(); // reset our names if we're full replacing meaning we're setting the names not adding.
         
         foreach (var name in assetData.NameMap)
         {
@@ -129,7 +131,7 @@ public class Serializer
         Buffer.BlockCopy(ogBytes, (int)ogSummary.HeaderSize, properties, 0, properties.Length);*/
 
         assetData.Summary = ogSummary; // not done with serialization so we're not doing to much like recreating the summary yet, atleast not until all header data is being written.
-        
+
         if (assetData.Properties != null)
         {
             for (int i = 0; i < package.ExportMap.Length; i++) // add needed properties to the properties list.
@@ -139,26 +141,34 @@ public class Serializer
 
                 if (indexOfDic != -1)
                 {
+                    if (fullReplace == true)
+                        package.ExportsLazy[i].Value.Properties.RemoveRange(0, package.ExportsLazy[i].Value.Properties.Count); // remove all properties if we're setting not adding.
                     package.ExportsLazy[i].Value.Properties.AddRange(assetData.Properties.ElementAt(indexOfDic).Value);
                     foreach (var Value in assetData.Properties.ElementAt(indexOfDic).Value)
                     {
-                        string path = ((FSoftObjectPath)Value.Tag.GenericValue).AssetPathName.Text;
-                        int index = Names.FindIndex(x => x.Name == path.Split(".")[0]);
-                        if (index < 0)
+                        try
                         {
-                            Names.Add(new FNameEntrySerialized()
+                            string path = ((FSoftObjectPath)Value.Tag.GenericValue).AssetPathName.Text;
+                            int index = Names.FindIndex(x => x.Name == path.Split(".")[0]);
+                            if (index < 0)
                             {
-                                Name = path.Split(".")[0]
-                            });
-                            Names.Add(new FNameEntrySerialized()
-                            {
-                                Name = path.Split(".")[1]
-                            });
+                                Names.Add(new FNameEntrySerialized()
+                                {
+                                    Name = path.Split(".")[0]
+                                });
+                                Names.Add(new FNameEntrySerialized()
+                                {
+                                    Name = path.Split(".")[1]
+                                });
+                            }
                         }
+                        catch (Exception ex) {}
                     }
                 }
             }
         }
+
+        
         
         assetData.NameMapData = SerializeFNameMap(Names, assetData.NameMap.Count, new byte[0]);
         
